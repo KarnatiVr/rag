@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Resume viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .content-auto {
+          content-visibility: auto;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-white dark:bg-gray-900 bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/hero-pattern.svg')] dark:bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/hero-pattern-dark.svg')]"
+  >
+
+  {% if form %}
+    <div
+      class="container max-w-96 mx-auto mt-10 outline outline-offset-2 outline-1 outline-white p-8"
+    >
+      <h1 class="text-3xl font-semibold dark:text-white">
+        upload document to chat
+      </h1>
+      <form action="upload" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label
+          for="input"
+          class="block my-5 text-xl font-medium text-gray-900 dark:text-white"
+          >Ask a Question</label
+        >
+        <input
+          type="text"
+          name="{{ form.input.name }}"
+          id="{{form.input.id_for_label}}"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          placeholder="Ask a question"
+          required
+        />
+        
+        <input
+          type="submit"
+          class="py-2.5 px-5 me-2 my-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+        >
+        </input>
+      </form>
+
+    </div>
+    {% endif %}
+      {% if form_submitted %}
+      <div class="text-white text-center">
+        <p class="text-4xl my-5">We have received your query</p>
+        <p class="font-sm" >The answer is </p>
+      </div>
+      <div id="button-container">
+    
+      </div>
+      {% endif %}
+
+    <pre id="content" class="text-white m-5 text-wrap">
+ 
+    </pre>
+  </body>
+  <script>
+    // document.getElementById("content").innerHTML = document
+    //   .getElementById("content")
+    //   .innerHTML.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    // setTimeout(function () {
+    //   var buttonContainer = document.getElementById("button-container");
+    //   var feedbackButton = document.getElementById("feedback-button");
+    //   if (buttonContainer && feedbackButton) {
+    //     feedbackButton.style.display = "block";
+    //   }
+    // }, 30000); // 30 seconds
+  </script>
+</html>
