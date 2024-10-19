@@ -11,6 +11,12 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from transformers.utils import hub
+import os
+
+os.environ['CURL_CA_BUNDLE'] = ''
+
+hub.HUGGINGFACE_REQUEST_TIMEOUT = 30
 
 
 

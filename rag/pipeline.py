@@ -1,12 +1,15 @@
 
+from django.apps import apps
 from .utils import ChunkHandler, Extractor, GenerateEmbeddings
 
 
 class RagPipeline:
-
+    pineCone = apps.get_app_config('rag').pineCone
     document_instance_id = 0
     cleaned_text = ''
-    chunks = ''
+    chunks = []
+    embeddings = []
+    query_vector = []
 
     def __init__(self, id):
         self.document_instance_id = id
@@ -19,11 +22,21 @@ class RagPipeline:
         self.embedd_text()
 
     def embedd_text(self):
-        GenerateEmbeddings(self.cleaned_text)
+        self.embeddings = GenerateEmbeddings(self.chunks).embeddings
+        self.store_embeddings()
+
+    def store_embeddings(self):
+        self.pineCone.upsert_data(self.embeddings)
+        self.convert_query_to_vector("what is unit testing?")
+
+    def convert_query_to_vector(self, query):
+        self.query_vector = GenerateEmbeddings(query).embeddings
         
+        self.query_pinecone()
+    
+    def query_pinecone(self):
+        self.pineCone.query(self.query_vector)
 
-
-    def store_embeddings():
+    def post_process(self):
         pass
-        
     

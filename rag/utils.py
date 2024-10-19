@@ -2,42 +2,45 @@ from pypdf import PdfReader
 import docx
 import re
 from semantic_text_splitter import TextSplitter
-from transformers import BertTokenizer
+from tokenizers import Tokenizer
+from pinecone import Pinecone
 
 from rag.models import User
 from sentence_transformers import SentenceTransformer
-
+import os
 
 class GenerateEmbeddings:
+    chunks =[]
     text = ''
-    def __init__(self,text):
-        self.text = text
-        self.generate_text_embeddings(self.text)
+    embeddings = []
+    def __init__(self,chunks_or_text):
+        if isinstance(chunks_or_text, list):
+            self.chunks = chunks_or_text
+        else:
+            self.text = chunks_or_text
+        self.generate_text_embeddings()
     
-    def generate_text_embeddings(self, text):
+    def generate_text_embeddings(self):
         model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-
-        # Sentences we want to encode. Example:
-        sentence = ['This framework generates embeddings for each input sentence']
-
-        # Sentences are encoded by calling model.encode()
-        embedding = model.encode(sentence)
+        # print(self.chunks)
+        if len(self.chunks)>0:
+            self.embeddings = model.encode(self.chunks)
+        else:
+            self.embeddings = model.encode(self.text).tolist()
+        # print(self.embeddings)
 
 class ChunkHandler:
 
-    chunks =''
+    chunks =[]
 
     def __init__(self, text):
         self.split_into_chunks(text)
 
     def split_into_chunks(self,text):
-        max_tokens = 1000
-        # tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
-        # splitter = TextSplitter.from_huggingface_tokenizer(tokenizer, max_tokens)
-        splitter = TextSplitter((200,1000))
+        max_tokens = 50
+        tokenizer = Tokenizer.from_pretrained("bert-base-cased")
+        splitter = TextSplitter.from_huggingface_tokenizer(tokenizer, max_tokens,10)
         self.chunks = splitter.chunks(text)
-        print(self.chunks)
-        
 
 class Extractor:
     cleaned_text = ''
@@ -49,9 +52,9 @@ class Extractor:
         
     
     def clean_text(self,text):
-        txt = text.replace('\n', ' ').replace('\t', ' ').replace('\r', ' ').replace('  ', ' ').replace("•", "").replace("*", "").replace("-", "").replace('  ','')
+        txt = text.replace('\n', ' ').replace('\t', ' ').replace('\r', ' ').replace('  ', ' ').replace("•", "").replace("*", "").replace("-", "").replace('  ','').replace(',',' ')
         punc_removed = re.sub(r'[:]', '', txt).lower()
-        print(punc_removed)
+        # print(punc_removed)
         return punc_removed
          
 
