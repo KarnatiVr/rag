@@ -22,9 +22,9 @@
       class="container max-w-96 mx-auto mt-10 outline outline-offset-2 outline-1 outline-white p-8"
     >
       <h1 class="text-3xl font-semibold dark:text-white">
-        upload document to chat
+        Ask a question which you can find an answer in document
       </h1>
-      <form action="upload" method="post" enctype="multipart/form-data">
+      <form action="getAnswer" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <label
           for="input"
@@ -52,10 +52,10 @@
       {% if form_submitted %}
       <div class="text-white text-center">
         <p class="text-4xl my-5">We have received your query</p>
-        <p class="font-sm" >The answer is </p>
+        <p class="font-sm" >The answer is ....</p>
       </div>
-      <div id="button-container">
-    
+      <div class="text-white text-center text-3xl my-5">
+        {{answer}}
       </div>
       {% endif %}
 

@@ -1,8 +1,9 @@
 from pinecone import  Pinecone
 from pinecone import ServerlessSpec
 
+
 class PineCone:
-    pc = Pinecone(api_key="b7b4166f-5a03-438a-ab77-f74c02fb401b")
+    pc = Pinecone(api_key="key")
     index_name = "test-index"
     
     def __int__(self):
@@ -22,7 +23,7 @@ class PineCone:
             )
         )
     
-    def upsert_data(self, values):
+    def upsert_data(self, values, namespace):
         index = self.pc.Index("test-index")
         vectors =[]
         temp = 1
@@ -32,21 +33,23 @@ class PineCone:
         # print("len of vectors",vectors)
         index.upsert(
         vectors=vectors,
-        namespace="ns1"
+        namespace=namespace
         )
+    
 
-    def query(self, query_vector):
+
+    def query(self, query_vector,ns):
         index = self.pc.Index("test-index")
         # print(len(query_vector), query_vector)
         res = index.query(
-            namespace="ns1",
+            namespace=ns,
             vector=query_vector,
-            top_k=5,
+            top_k=7,
             include_values=True
         )
-        print(res)
-        with open("output.txt", "w") as f:
-            f.write(str(res))
+        # print(res)
+        # with open("output.txt", "w") as f:
+        #     f.write(str(res))
         return res['matches']
 
     

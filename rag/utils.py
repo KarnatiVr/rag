@@ -1,18 +1,20 @@
+from django.apps import apps
 from pypdf import PdfReader
 import docx
 import re
 from semantic_text_splitter import TextSplitter
 from tokenizers import Tokenizer
-from pinecone import Pinecone
 
+from .llms import LLM
 from rag.models import User
 from sentence_transformers import SentenceTransformer
-import os
 
 class GenerateEmbeddings:
     chunks =[]
     text = ''
     embeddings = []
+    llm = apps.get_app_config('rag').llm
+
     def __init__(self,chunks_or_text):
         if isinstance(chunks_or_text, list):
             self.chunks = chunks_or_text
@@ -21,7 +23,7 @@ class GenerateEmbeddings:
         self.generate_text_embeddings()
     
     def generate_text_embeddings(self):
-        model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+        model = self.llm.get_embedding_model()
         # print(self.chunks)
         if len(self.chunks)>0:
             self.embeddings = model.encode(self.chunks)
@@ -80,3 +82,4 @@ class Extractor:
         text = '\n'.join(fullText)
         return text
   
+

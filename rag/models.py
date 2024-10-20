@@ -7,3 +7,10 @@ class User(models.Model):
 
     def __str__(self) -> str:
         return f"{self.id}"
+
+class Chat(models.Model):
+    input=models.CharField(max_length=200)
+    output=models.CharField(max_length=200)
+
+    def __str__(self) -> str:
+        return f"{self.id}"
