@@ -1,9 +1,9 @@
 from pinecone import  Pinecone
 from pinecone import ServerlessSpec
-
+from django.conf import settings
 
 class PineCone:
-    pc = Pinecone(api_key="key")
+    pc = Pinecone(api_key=settings.PINECONE_KEY)
     index_name = "test-index"
     
     def __int__(self):

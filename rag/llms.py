@@ -3,12 +3,13 @@ from openai import OpenAI
 from sentence_transformers import SentenceTransformer
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
 import torch
+from django.conf import settings
 
 class LLM:
     
     prompt_model_name = "deepset/roberta-base-squad2"
     embedding_model_name = "paraphrase-MiniLM-L6-v2"
-    client = OpenAI(api_key="key")
+    client = OpenAI(api_key=settings.OPENAI_KEY)
 
     def __init__(self):
         self.load_embedding_model()

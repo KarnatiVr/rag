@@ -11,13 +11,14 @@ from .forms import ChatInput, DocumentForm
 
 
 rag = RagPipeline()
+ns_to_be_queried = ''
 def home(request):
     return render(request,'index.html')
 
 def upload_document(request):
     existing_docs = []
     for i in User.objects.all():
-        existing_docs.append(i.document.name)
+        existing_docs.append(i.document.name.split('/')[1])
     if request.method == 'POST':
 
         form = DocumentForm(request.POST,request.FILES)
@@ -35,7 +36,8 @@ def upload_document(request):
                 user_instance = User.objects.create(name=name,document=document)
                 user_instance.save()
                 rag.process_doc(user_instance.id)
-                return render(request, 'upload.html',{'form_submitted':True,'show':False})      
+                ns_to_be_queried = User.objects.get(id=user_instance.id).document.name.split('/')[1]
+                return render(request, 'upload.html',{'form_submitted':True,'show':False, 'doc':ns_to_be_queried})      
 
         else:
             print(form.errors)  # Print form errors to console for debugging
@@ -45,9 +47,10 @@ def upload_document(request):
 
         return render(request, 'upload.html',{'form':form,'form_submitted':False,'show':False, 'existing_docs':existing_docs})
 
-def get_answer(request):
-    if request.method == 'POST':
+def get_answer(request,doc):
+    ns_to_be_queried = doc
 
+    if request.method == 'POST':
         form = ChatInput(request.POST)
         # check whether it's valid:
         # print(form.is_valid())
@@ -60,7 +63,7 @@ def get_answer(request):
             if ques is not None:  
                 chat_instance = Chat.objects.create(input=ques)
                 chat_instance.save()
-                ans=rag.convert_query_to_vector(chat_instance.id)
+                ans=rag.convert_query_to_vector(chat_instance.id,ns_to_be_queried)
                 return render(request, 'chat_screen.html',{'form_submitted':True,'show':False, 'answer':ans})      
 
         else:
@@ -70,6 +73,7 @@ def get_answer(request):
         form = ChatInput()
         return render(request, 'chat_screen.html',{'form':form,'form_submitted':False,'show':False})
 
-def chat(request):
+def chat(request,doc):
     form = ChatInput()
-    return render(request, 'chat_screen.html', {'form':form,'form_submitted':False,'show':False})
+    ns_to_be_queried = doc
+    return render(request, 'chat_screen.html', {'form':form,'form_submitted':False,'show':False, 'doc':ns_to_be_queried})

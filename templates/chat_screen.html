@@ -24,7 +24,7 @@
       <h1 class="text-3xl font-semibold dark:text-white">
         Ask a question which you can find an answer in document
       </h1>
-      <form action="getAnswer" method="post" enctype="multipart/form-data">
+      <form action="{% url 'getAnswer' doc=doc%}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <label
           for="input"

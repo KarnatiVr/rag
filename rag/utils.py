@@ -81,5 +81,22 @@ class Extractor:
             fullText.append(para.text)
         text = '\n'.join(fullText)
         return text
-  
 
+def get_document_instance_id(ns):
+    temp =['uploads']
+    temp.append(ns)
+    print(ns)
+    document_name = '/'.join(temp)
+    print(document_name)
+    id = User.objects.filter(document__icontains=document_name).first().id
+    print(id)
+    return id
+
+def get_chunks(id):
+    print(User.objects.get(id=id).chunks)
+    return User.objects.get(id=id).chunks
+
+def store_chunks(id,chunks):
+    instance = User.objects.get(id=id)
+    instance.chunks = chunks
+    instance.save()

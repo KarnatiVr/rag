@@ -2,7 +2,7 @@
 from django.apps import apps
 
 from .models import Chat, User
-from .utils import ChunkHandler, Extractor, GenerateEmbeddings
+from .utils import ChunkHandler, Extractor, GenerateEmbeddings, get_chunks, get_document_instance_id, store_chunks
 
 
 class RagPipeline:
@@ -30,7 +30,7 @@ class RagPipeline:
 
     def process_doc(self,id):
         self.document_instance_id = id
-        self.current_doc_ns=User.objects.get(id=id).document.name
+        self.current_doc_ns=User.objects.get(id=id).document.name.split('/')[1]
         
         self.extract_and_chunk()
 
@@ -38,6 +38,7 @@ class RagPipeline:
         extractor = Extractor(self.document_instance_id)
         self.cleaned_text = extractor.cleaned_text
         self.chunks = ChunkHandler(self.cleaned_text).chunks
+        store_chunks(self.document_instance_id, self.chunks)
         print("chunks")
         print(len(self.chunks))
         self.embedd_text()
@@ -50,12 +51,14 @@ class RagPipeline:
 
     def store_embeddings(self):
         self.pineCone.upsert_data(self.embeddings,self.current_doc_ns)
+        self.chunks = []
         # self.convert_query_to_vector("what is performance testing?")
 
-    def convert_query_to_vector(self, id):
+    def convert_query_to_vector(self, id, ns):
         self.question = Chat.objects.get(id=id).input
+        self.document_instance_id = get_document_instance_id(ns)
         self.query_vector = GenerateEmbeddings(self.question).embeddings
-        
+        self.current_doc_ns = ns
         return self.query_pinecone()
     
     def query_pinecone(self):
@@ -63,7 +66,8 @@ class RagPipeline:
         return self.post_process()
 
     def post_process(self):
-        print(self.query_results)
+        # print(self.query_results)
+        self.chunks = get_chunks(self.document_instance_id)
         if len(self.query_results) > 0:
             for item in self.query_results:
                 txt = self.chunks[int(item['id'])-1]
@@ -76,8 +80,8 @@ class RagPipeline:
     def generate_answer(self):
         print("question----->",self.question)
         print("context----->",self.context)
-        self.answer = self.llm.process_prompt(self.question, self.context)
-        # self.answer = self.llm.openAI_model(self.question, self.context)
+        # self.answer = self.llm.process_prompt(self.question, self.context)
+        self.answer = self.llm.openAI_model(self.question, self.context)
         return self.answer
 
     def delete_data(self):

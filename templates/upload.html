@@ -58,7 +58,7 @@
       </form>
       {% for item in existing_docs %}
             <div class="border border-white text-white p-4 rounded-lg cursor-pointer hover:bg-gray-800 transition-colors">
-                <p class="text-center">{{ item }}</p>
+                <a  href="{% url 'chat' doc=item %}" class="text-center">{{ item }}</a>
             </div>
         {% endfor %}
     </div>
@@ -69,10 +69,9 @@
         <p class="font-sm" >Click on below link to chat with document</p>
       </div>
       <div id="button-container">
-        <a href="{% url 'chat' %}">
+        <a href="{% url 'chat' doc=doc %}">
           <button
             id="feedback-button"
-            style="display: none"
             class="py-2.5 px-5 my-5 mx-auto text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
           >
             Chat with Doc
@@ -85,7 +84,7 @@
  
     </pre>
   </body>
-  <script>
+  <!-- <script>
     document.getElementById("content").innerHTML = document
       .getElementById("content")
       .innerHTML.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
@@ -97,5 +96,5 @@
         feedbackButton.style.display = "block";
       }
     }, 30000); // 30 seconds
-  </script>
+  </script> -->
 </html>

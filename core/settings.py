@@ -20,6 +20,14 @@ hub.HUGGINGFACE_REQUEST_TIMEOUT = 30
 
 
 
+
+import environ
+env = environ.Env()
+env.read_env(env.str('ENV_PATH', './.env'))
+OPENAI_KEY=env('OPEN_AI_KEY')
+PINECONE_KEY=env('PINECONE_API_KEY')
+# print(PINECONE_KEY)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
