@@ -2,7 +2,7 @@
 from django.apps import apps
 
 from .models import Chat, User
-from .utils import ChunkHandler, Extractor, GenerateEmbeddings, get_chunks_instance, get_document_instance_id, store_chunks
+from .utils import ChunkHandler, Extractor, GenerateEmbeddings, get_chunks, get_chunks_instance, get_document_instance_id, store_chunks
 
 
 class RagPipeline:
@@ -14,7 +14,7 @@ class RagPipeline:
         # self.extract_and_chunk()
         print("pipeline initialised")
         self.set_initial_state()
-        # self.chunk_instance_id = get_chunks_instance()
+        self.chunk_instance_id = get_chunks_instance()
 
     def set_initial_state(self):
         self.pineCone = apps.get_app_config('rag').pineCone
@@ -29,10 +29,11 @@ class RagPipeline:
         self.question = ''
         self.context = ''
         self.answer = ''
+        self.doc_choice=''
 
     def process_doc(self,id):
         self.document_instance_id = id
-        self.current_doc_ns=User.objects.get(id=id).document.name.split('/')[1]
+        self.current_doc_md=User.objects.get(id=id).document.name.split('/')[1]
         
         self.extract_and_chunk()
 
@@ -42,7 +43,7 @@ class RagPipeline:
         # self.chunks = ChunkHandler(self.cleaned_text).chunks
         chunks = ChunkHandler(self.cleaned_text).chunks
         self.chunks.extend(chunks)
-        store_chunks(self.document_instance_id, chunks)
+        store_chunks(self.chunk_instance_id,self.chunks)
         print("chunks")
         print(len(self.chunks))
         self.embedd_text(chunks)
@@ -54,24 +55,26 @@ class RagPipeline:
         self.store_embeddings()
 
     def store_embeddings(self):
-        self.pineCone.upsert_or_update(self.embeddings)
+        self.pineCone.upsert_data(self.embeddings,self.current_doc_md)
         # self.chunks = []
         # self.convert_query_to_vector("what is performance testing?")
 
-    def convert_query_to_vector(self, id, ns):
+    def convert_query_to_vector(self, id, ns=None):
         self.question = Chat.objects.get(id=id).input
-        self.document_instance_id = get_document_instance_id(ns)
+        self.doc_choice = Chat.objects.get(id=id).choice.split('/')[1]
+        # self.document_instance_id = get_document_instance_id(ns)
         self.query_vector = GenerateEmbeddings(self.question).embeddings
-        self.current_doc_ns = ns
+        self.current_doc_md = self.doc_choice
         return self.query_pinecone()
     
     def query_pinecone(self):
-        self.query_results = self.pineCone.query(self.query_vector)
+        self.query_results = self.pineCone.query(self.query_vector, self.current_doc_md)
         return self.post_process()
 
     def post_process(self):
         # print(self.query_results)
-        # self.chunks = get_chunks(self.document_instance_id)
+        self.chunks = get_chunks(self.chunk_instance_id)
+        print(len(self.chunks))
         if len(self.query_results) > 0:
             for item in self.query_results:
                 txt = self.chunks[int(item['id'])-1]

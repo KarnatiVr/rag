@@ -32,17 +32,18 @@ class PineCone:
         else:
             self.upsert_data(values)
     
-    def upsert_data(self, values):
+    def upsert_data(self, values, md):
         index = self.pc.Index("test-index")
         vectors =[]
         temp = 0
         for i in values:
-            vectors.append({"id":str(self.last_index) , "values": i})
+            vectors.append({"id":str(self.last_index) , "values": i,"metadata": {"doc_name":md}})
             self.last_index = self.last_index+1
         # print("len of vectors",vectors)
         index.upsert(
         vectors=vectors,
-        namespace=self.namespace
+        namespace=self.namespace,
+        
         )
 
     def update_data(self, values):
@@ -56,19 +57,29 @@ class PineCone:
             namespace=self.namespace
         )
 
-    def query(self, query_vector):
+    def query(self, query_vector, md=None):
         index = self.pc.Index("test-index")
         # print(len(query_vector), query_vector)
-        res = index.query(
-            namespace=self.namespace,
-            vector=query_vector,
-            top_k=5,
-            include_values=True
-        )
+        if md is not None:
+            res = index.query(
+                namespace=self.namespace,
+                vector=query_vector,
+                top_k=5,
+                include_values=True,
+                filter={"doc_name":{"$eq": md}},
+                include_metadata=True
+            )
+        else :
+            res = index.query(
+                namespace=self.namespace,
+                vector=query_vector,
+                top_k=5,
+                include_values=True
+            )
         # print(res)
         # with open("output.txt", "w") as f:
         #     f.write(str(res))
-        print(res)
+        # print(res)
         return res['matches']
     
 

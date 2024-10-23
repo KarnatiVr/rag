@@ -60,8 +60,10 @@ def get_answer(request,doc):
             # User.objects.create()
             
             ques=request.POST['input']
+            choice = request.POST['choice']
+            print(choice)
             if ques is not None:  
-                chat_instance = Chat.objects.create(input=ques)
+                chat_instance = Chat.objects.create(input=ques, choice=choice)
                 chat_instance.save()
                 ans=rag.convert_query_to_vector(chat_instance.id,ns_to_be_queried)
                 return render(request, 'chat_screen.html',{'form_submitted':True,'show':False, 'answer':ans})      
