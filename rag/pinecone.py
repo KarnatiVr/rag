@@ -5,6 +5,8 @@ from django.conf import settings
 class PineCone:
     pc = Pinecone(api_key=settings.PINECONE_KEY)
     index_name = "test-index"
+    namespace = "test-namespace"
+    last_index = 0
     
     def __int__(self):
         print("Pinecone initialized")
@@ -23,18 +25,38 @@ class PineCone:
             )
         )
     
-    def upsert_data(self, values, namespace):
+    def upsert_or_update(self, values):
+        self.last_index = self.get_length_index()
+        if self.last_index == 0:
+            self.upsert_data(values)
+        else:
+            self.update_data(values)
+    
+    def upsert_data(self, values):
         index = self.pc.Index("test-index")
         vectors =[]
-        temp = 1
+        temp = 0
         for i in values:
             vectors.append({"id":str(temp) , "values": i})
             temp = temp+1
         # print("len of vectors",vectors)
+        self.last_index = temp
         index.upsert(
         vectors=vectors,
-        namespace=namespace
+        namespace=self.namespace
         )
+
+    def update_data(self, values):
+        index= self.pc.Index("test-index")
+        vectors =[]
+        for i in values:
+            vectors.append({"id":str(self.last_index), "values": i})
+            self.last_index = self.last_index+1
+        index.update(
+            vectors=vectors,
+            namespace=self.namespace
+        )
+
     
 
 
@@ -44,12 +66,18 @@ class PineCone:
         res = index.query(
             namespace=ns,
             vector=query_vector,
-            top_k=7,
+            top_k=5,
             include_values=True
         )
         # print(res)
         # with open("output.txt", "w") as f:
         #     f.write(str(res))
         return res['matches']
+    
+
+    def get_length_index(self):
+        index = self.pc.Index("test-index")
+        return len(index.list(namespace=self.namespace))
+        
 
     

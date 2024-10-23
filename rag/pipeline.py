@@ -37,21 +37,23 @@ class RagPipeline:
     def extract_and_chunk(self):
         extractor = Extractor(self.document_instance_id)
         self.cleaned_text = extractor.cleaned_text
-        self.chunks = ChunkHandler(self.cleaned_text).chunks
-        store_chunks(self.document_instance_id, self.chunks)
+        # self.chunks = ChunkHandler(self.cleaned_text).chunks
+        chunks = ChunkHandler(self.cleaned_text).chunks
+        self.chunks.extend(chunks)
+        store_chunks(self.document_instance_id, chunks)
         print("chunks")
         print(len(self.chunks))
-        self.embedd_text()
+        self.embedd_text(chunks)
 
-    def embedd_text(self):
-        self.embeddings = GenerateEmbeddings(self.chunks).embeddings
+    def embedd_text(self, chunks):
+        self.embeddings = GenerateEmbeddings(chunks).embeddings
         print("embeddings")
         print(len(self.embeddings))
         self.store_embeddings()
 
     def store_embeddings(self):
-        self.pineCone.upsert_data(self.embeddings,self.current_doc_ns)
-        self.chunks = []
+        self.pineCone.upsert_or_update(self.embeddings)
+        # self.chunks = []
         # self.convert_query_to_vector("what is performance testing?")
 
     def convert_query_to_vector(self, id, ns):
@@ -67,7 +69,7 @@ class RagPipeline:
 
     def post_process(self):
         # print(self.query_results)
-        self.chunks = get_chunks(self.document_instance_id)
+        # self.chunks = get_chunks(self.document_instance_id)
         if len(self.query_results) > 0:
             for item in self.query_results:
                 txt = self.chunks[int(item['id'])-1]

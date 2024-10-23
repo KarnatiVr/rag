@@ -39,7 +39,7 @@ class ChunkHandler:
         self.split_into_chunks(text)
 
     def split_into_chunks(self,text):
-        max_tokens = 50
+        max_tokens = 100
         tokenizer = Tokenizer.from_pretrained("bert-base-cased")
         splitter = TextSplitter.from_huggingface_tokenizer(tokenizer, max_tokens,10)
         self.chunks = splitter.chunks(text)
@@ -59,7 +59,6 @@ class Extractor:
         # print(punc_removed)
         return punc_removed
          
-
     def extract_text(self,document):
         if(document.name.split('.')[1] == 'pdf'):
             return self.extract_text_from_pdf(document)
