@@ -68,6 +68,7 @@ class RagPipeline:
     def post_process(self):
         # print(self.query_results)
         self.chunks = get_chunks(self.document_instance_id)
+        print(len(self.chunks))
         if len(self.query_results) > 0:
             for item in self.query_results:
                 txt = self.chunks[int(item['id'])-1]
