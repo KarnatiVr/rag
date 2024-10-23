@@ -13,3 +13,9 @@ class Chat(models.Model):
 
     def __str__(self) -> str:
         return f"{self.id}"
+
+class Chunk(models.Model):
+    chunks=models.JSONField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.id}"

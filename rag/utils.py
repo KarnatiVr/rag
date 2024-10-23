@@ -6,7 +6,7 @@ from semantic_text_splitter import TextSplitter
 from tokenizers import Tokenizer
 
 from .llms import LLM
-from rag.models import User
+from .models import Chunk, User
 from sentence_transformers import SentenceTransformer
 
 class GenerateEmbeddings:
@@ -96,6 +96,20 @@ def get_chunks(id):
     return User.objects.get(id=id).chunks
 
 def store_chunks(id,chunks):
-    instance = User.objects.get(id=id)
+    instance = Chunk.objects.get(id=id)
     instance.chunks = chunks
     instance.save()
+
+def get_chunks_instance():
+    inst = Chunk.objects.all().first()
+    if inst is None:
+        return create_chunk_instance()
+    return inst.id
+
+
+def create_chunk_instance():
+    chunks = Chunk.objects.create(chunks=[])
+    chunks.save()
+
+    return chunks.id
+

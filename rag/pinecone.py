@@ -30,17 +30,16 @@ class PineCone:
         if self.last_index == 0:
             self.upsert_data(values)
         else:
-            self.update_data(values)
+            self.upsert_data(values)
     
     def upsert_data(self, values):
         index = self.pc.Index("test-index")
         vectors =[]
         temp = 0
         for i in values:
-            vectors.append({"id":str(temp) , "values": i})
-            temp = temp+1
+            vectors.append({"id":str(self.last_index) , "values": i})
+            self.last_index = self.last_index+1
         # print("len of vectors",vectors)
-        self.last_index = temp
         index.upsert(
         vectors=vectors,
         namespace=self.namespace
@@ -57,14 +56,11 @@ class PineCone:
             namespace=self.namespace
         )
 
-    
-
-
-    def query(self, query_vector,ns):
+    def query(self, query_vector):
         index = self.pc.Index("test-index")
         # print(len(query_vector), query_vector)
         res = index.query(
-            namespace=ns,
+            namespace=self.namespace,
             vector=query_vector,
             top_k=5,
             include_values=True
@@ -72,12 +68,17 @@ class PineCone:
         # print(res)
         # with open("output.txt", "w") as f:
         #     f.write(str(res))
+        print(res)
         return res['matches']
     
 
     def get_length_index(self):
         index = self.pc.Index("test-index")
-        return len(index.list(namespace=self.namespace))
+        last_id = 0
+        for i in index.list(namespace=self.namespace):
+            last_id = last_id+len(i)
+
+        return last_id
         
 
     

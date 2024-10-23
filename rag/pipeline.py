@@ -2,17 +2,19 @@
 from django.apps import apps
 
 from .models import Chat, User
-from .utils import ChunkHandler, Extractor, GenerateEmbeddings, get_chunks, get_document_instance_id, store_chunks
+from .utils import ChunkHandler, Extractor, GenerateEmbeddings, get_chunks_instance, get_document_instance_id, store_chunks
 
 
 class RagPipeline:
 
+    
 
     def __init__(self):
         # self.document_instance_id = id
         # self.extract_and_chunk()
         print("pipeline initialised")
         self.set_initial_state()
+        # self.chunk_instance_id = get_chunks_instance()
 
     def set_initial_state(self):
         self.pineCone = apps.get_app_config('rag').pineCone
@@ -64,7 +66,7 @@ class RagPipeline:
         return self.query_pinecone()
     
     def query_pinecone(self):
-        self.query_results = self.pineCone.query(self.query_vector,self.current_doc_ns)
+        self.query_results = self.pineCone.query(self.query_vector)
         return self.post_process()
 
     def post_process(self):
