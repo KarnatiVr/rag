@@ -8,6 +8,7 @@ from tokenizers import Tokenizer
 from .llms import LLM
 from rag.models import User
 from sentence_transformers import SentenceTransformer
+import math
 
 class GenerateEmbeddings:
     chunks =[]
@@ -85,18 +86,66 @@ class Extractor:
 def get_document_instance_id(ns):
     temp =['uploads']
     temp.append(ns)
-    print(ns)
+    # print(ns)
     document_name = '/'.join(temp)
-    print(document_name)
+    # print(document_name)
     id = User.objects.filter(document__icontains=document_name).first().id
-    print(id)
+    # print(id)
     return id
 
 def get_chunks(id):
-    print(User.objects.get(id=id).chunks)
+    print(len(User.objects.get(id=id).chunks))
+    
     return User.objects.get(id=id).chunks
 
 def store_chunks(id,chunks):
     instance = User.objects.get(id=id)
     instance.chunks = chunks
     instance.save()
+    
+def zip_chunk_vector(embeddings, chunks):
+    res = []
+    for embbed, chunk in zip(embeddings.tolist(), chunks):
+        res.append((embbed,chunk))
+    return res
+
+
+def retrieve_similar_vectors(vector_a, vector_set, top_k=0, threshold = 0.4):
+    similar_chunks= []
+    for i in range(len(vector_set)):
+        similarity = cosine_similarity(vector_a, vector_set[i][0])
+        print(similarity)
+        if similarity > threshold:
+            similar_chunks.append((similarity, vector_set[i][1]))
+
+    # print(sorted(similar_chunks, key=lambda x: x[0], reverse=True)[:top_k])
+    if top_k >0:
+        similar_chunks = unzip_chunks(sorted(similar_chunks, key=lambda x: x[0], reverse=True)[:top_k])
+        # print(similar_chunks)
+        return similar_chunks
+    return unzip_chunks(sorted(similar_chunks, key=lambda x: x[0], reverse=True))
+
+def unzip_chunks(vector_set):
+    chunks = []
+    for i in range(len(vector_set)):
+        chunks.append(vector_set[i][1])
+    return chunks
+
+
+def cosine_similarity(a,b):
+  dot_p = 0
+  for i in range(len(a)):
+    dot_p = dot_p+a[i]*b[i]
+  mag = find_magnitude(a)*find_magnitude(b)
+
+  return dot_p/mag
+
+def find_magnitude(a):
+  mag = 0
+  for i in a:
+    mag = mag+i**2
+  
+  return math.sqrt(mag)
+  
+
+

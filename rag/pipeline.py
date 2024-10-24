@@ -2,7 +2,7 @@
 from django.apps import apps
 
 from .models import Chat, User
-from .utils import ChunkHandler, Extractor, GenerateEmbeddings, get_chunks, get_document_instance_id, store_chunks
+from .utils import ChunkHandler, Extractor, GenerateEmbeddings, get_chunks, get_document_instance_id, retrieve_similar_vectors, store_chunks, zip_chunk_vector
 
 
 class RagPipeline:
@@ -27,6 +27,7 @@ class RagPipeline:
         self.question = ''
         self.context = ''
         self.answer = ''
+        self.retrieved_chunks = []
 
     def process_doc(self,id):
         self.document_instance_id = id
@@ -38,7 +39,7 @@ class RagPipeline:
         extractor = Extractor(self.document_instance_id)
         self.cleaned_text = extractor.cleaned_text
         self.chunks = ChunkHandler(self.cleaned_text).chunks
-        store_chunks(self.document_instance_id, self.chunks)
+        # store_chunks(self.document_instance_id, self.chunks)
         print("chunks")
         print(len(self.chunks))
         self.embedd_text()
@@ -50,7 +51,9 @@ class RagPipeline:
         self.store_embeddings()
 
     def store_embeddings(self):
-        self.pineCone.upsert_data(self.embeddings,self.current_doc_ns)
+        res = zip_chunk_vector(self.embeddings,self.chunks)
+        store_chunks(self.document_instance_id,res)
+        # self.pineCone.upsert_data(self.embeddings,self.current_doc_ns)
         self.chunks = []
         # self.convert_query_to_vector("what is performance testing?")
 
@@ -62,8 +65,11 @@ class RagPipeline:
         return self.query_pinecone()
     
     def query_pinecone(self):
-        self.query_results = self.pineCone.query(self.query_vector,self.current_doc_ns)
-        return self.post_process()
+        # self.query_results = self.pineCone.query(self.query_vector,self.current_doc_ns)
+        self.retrieved_chunks = retrieve_similar_vectors(self.query_vector, get_chunks(self.document_instance_id))
+        print(len(self.retrieved_chunks))
+        # return self.post_process()
+        return self.post_process_old()
 
     def post_process(self):
         # print(self.query_results)
@@ -78,9 +84,16 @@ class RagPipeline:
             # print(txt)
             # print(len(self.chunks), len(self.embeddings))
     
+
+    def post_process_old(self):
+        for i in self.retrieved_chunks:
+            self.context = self.context+i
+        return self.generate_answer()
+            # print(txt)
+    
     def generate_answer(self):
-        print("question----->",self.question)
-        print("context----->",self.context)
+        # print("question----->",self.question)
+        # print("context----->",self.context)
         # self.answer = self.llm.process_prompt(self.question, self.context)
         self.answer = self.llm.openAI_model(self.question, self.context)
         return self.answer
