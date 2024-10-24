@@ -58,14 +58,15 @@ def get_answer(request,doc):
 
         if form.is_valid():
             # User.objects.create()
-            
+            # print(form.fields['choices'].querySet)
             ques=request.POST['input']
-            choice = request.POST['choice']
+            choice = form.cleaned_data['choices']
             print(choice)
             if ques is not None:  
                 chat_instance = Chat.objects.create(input=ques, choice=choice)
                 chat_instance.save()
-                ans=rag.convert_query_to_vector(chat_instance.id,ns_to_be_queried)
+                md = choice.split('/')[1] if choice is not None else None
+                ans=rag.convert_query_to_vector(chat_instance.id,md)
                 return render(request, 'chat_screen.html',{'form_submitted':True,'show':False, 'answer':ans})      
 
         else:

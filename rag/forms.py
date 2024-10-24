@@ -9,4 +9,4 @@ class DocumentForm(forms.Form):
 
 class ChatInput(forms.Form):
     input = forms.CharField(label="Your name", max_length=200)
-    choices = forms.ModelChoiceField(queryset=User.objects.values_list('document', flat=True), empty_label="None", label='Document')
+    choices = forms.ModelChoiceField(queryset=User.objects.values_list('document', flat=True), empty_label="None", label='Document',to_field_name="document", required=False)

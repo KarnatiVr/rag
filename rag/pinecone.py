@@ -34,6 +34,7 @@ class PineCone:
     
     def upsert_data(self, values, md):
         index = self.pc.Index("test-index")
+        self.last_index = self.get_length_index()
         vectors =[]
         temp = 0
         for i in values:
@@ -59,6 +60,7 @@ class PineCone:
 
     def query(self, query_vector, md=None):
         index = self.pc.Index("test-index")
+        print(md)
         # print(len(query_vector), query_vector)
         if md is not None:
             res = index.query(

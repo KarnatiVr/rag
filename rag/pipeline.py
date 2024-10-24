@@ -61,10 +61,13 @@ class RagPipeline:
 
     def convert_query_to_vector(self, id, ns=None):
         self.question = Chat.objects.get(id=id).input
-        self.doc_choice = Chat.objects.get(id=id).choice.split('/')[1]
+        # self.doc_choice = Chat.objects.get(id=id).choice.split('/')[1]
         # self.document_instance_id = get_document_instance_id(ns)
         self.query_vector = GenerateEmbeddings(self.question).embeddings
-        self.current_doc_md = self.doc_choice
+        if ns is not None:
+            self.current_doc_md = ns
+        else:
+            self.current_doc_md = None
         return self.query_pinecone()
     
     def query_pinecone(self):
@@ -75,6 +78,7 @@ class RagPipeline:
         # print(self.query_results)
         self.chunks = get_chunks(self.chunk_instance_id)
         print(len(self.chunks))
+        print(len(self.query_results))
         if len(self.query_results) > 0:
             for item in self.query_results:
                 txt = self.chunks[int(item['id'])-1]
@@ -86,7 +90,7 @@ class RagPipeline:
     
     def generate_answer(self):
         print("question----->",self.question)
-        print("context----->",self.context)
+        # print("context----->",self.context)
         # self.answer = self.llm.process_prompt(self.question, self.context)
         self.answer = self.llm.openAI_model(self.question, self.context)
         return self.answer
