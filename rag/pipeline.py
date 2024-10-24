@@ -38,7 +38,7 @@ class RagPipeline:
     def extract_and_chunk(self):
         extractor = Extractor(self.document_instance_id)
         self.cleaned_text = extractor.cleaned_text
-        self.chunks = ChunkHandler(self.cleaned_text).chunks
+        self.chunks = ChunkHandler(self.cleaned_text,max_tokens=100,overlap=50).chunks
         # store_chunks(self.document_instance_id, self.chunks)
         print("chunks")
         print(len(self.chunks))

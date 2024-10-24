@@ -36,14 +36,51 @@ class ChunkHandler:
 
     chunks =[]
 
-    def __init__(self, text):
-        self.split_into_chunks(text)
+    def __init__(self, text, max_tokens, overlap):
+        self.text = text
+        self.max_tokens = max_tokens
+        self.overlap = overlap
+        # self.split_into_chunks(text)
+        self.convert_txt_arr()
+        self.fixed_size_chunk()
 
     def split_into_chunks(self,text):
         max_tokens = 50
         tokenizer = Tokenizer.from_pretrained("bert-base-cased")
         splitter = TextSplitter.from_huggingface_tokenizer(tokenizer, max_tokens,10)
         self.chunks = splitter.chunks(text)
+    
+    def convert_txt_arr(self):
+        self.text = self.text.replace('\n', ' ').replace('\t', ' ').replace('\r', ' ').replace(".", " ").replace("*", " ").replace("-", " ").replace(', ', ' ').replace('?',' ').replace('!', ' ')
+        self.text = self.text.split(' ')
+    
+    def fixed_size_chunk(self):
+        prev_chunk = ''
+        curr_chunk = ''
+        temp_chunks =[]
+        text = self.text
+        print("length of text is --->",len(text))
+        while len(text) > 0:
+            for word in text:
+                if len(temp_chunks) < (self.max_tokens - self.overlap) and (len(temp_chunks) < len(text)):
+                    print(temp_chunks)
+                    temp_chunks.append(word)
+                else:
+                    curr_chunk = prev_chunk + ' '.join(temp_chunks)
+                    # print(curr_chunk)
+                    # print(temp_chunks)
+                    self.chunks.append(curr_chunk)
+                    index = self.max_tokens - self.overlap
+                    prev_chunk = ' '.join(temp_chunks[index:])
+                    break
+            print(self.chunks)
+            text = text[self.max_tokens-self.overlap:]
+            temp_chunks=[]
+        
+        print(self.chunks)
+                
+                
+        
 
 class Extractor:
     cleaned_text = ''
